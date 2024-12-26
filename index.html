@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GLB Viewer with Three.js</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      #container {
+        width: 100vw;
+        height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container"></div>
+
+    <!-- Include Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- Include GLTFLoader for loading GLB/GLTF files -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+    <!-- Include OrbitControls -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+      // Scene setup
+      const container = document.getElementById('container');
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xffffff); // Set background to white
+
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      container.appendChild(renderer.domElement);
+
+      // Add grid helper
+      const gridHelper = new THREE.GridHelper(10, 10); // Size 10, 10 divisions
+      scene.add(gridHelper);
+
+      // Studio lighting setup
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // General ambient light
+      scene.add(ambientLight);
+
+      const spotLight1 = new THREE.SpotLight(0xffffff, 0.8);
+      spotLight1.position.set(10, 10, 10);
+      scene.add(spotLight1);
+
+      const spotLight2 = new THREE.SpotLight(0xffffff, 0.8);
+      spotLight2.position.set(-10, 10, 10);
+      scene.add(spotLight2);
+
+      const spotLight3 = new THREE.SpotLight(0xffffff, 0.8);
+      spotLight3.position.set(10, 10, -10);
+      scene.add(spotLight3);
+
+      const spotLight4 = new THREE.SpotLight(0xffffff, 0.8);
+      spotLight4.position.set(-10, 10, -10);
+      scene.add(spotLight4);
+
+      // OrbitControls
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true; // Smooth orbiting
+
+      // Load GLB file
+      const loader = new THREE.GLTFLoader();
+      loader.load(
+        'Bangunan.glb', // Replace with the path to your GLB file
+        function (gltf) {
+          const object = gltf.scene;
+          scene.add(object);
+
+          // Adjust position to center the object on the surface
+          const box = new THREE.Box3().setFromObject(object);
+          const center = box.getCenter(new THREE.Vector3());
+          const size = box.getSize(new THREE.Vector3());
+          object.position.sub(center); // Center the object horizontally
+          object.position.y += size.y / 2; // Raise the object vertically to sit on the grid
+
+          object.scale.set(1, 1, 1); // Optional: Adjust scale
+        },
+        function (xhr) {
+          console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+        },
+        function (error) {
+          console.error('An error occurred while loading the GLB file:', error);
+        }
+      );
+
+      // Camera position
+      camera.position.set(3, 3, 5); // Adjust camera position
+      controls.update();
+
+      // Render loop
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update(); // Update controls
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      // Handle window resize
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    </script>
+  </body>
+</html>
